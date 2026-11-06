@@ -1,0 +1,5 @@
+{
+    "name": "Tideglass.Domain",
+    "rootNamespace": "Tideglass.Domain",
+    "noEngineReferences": true
+}
