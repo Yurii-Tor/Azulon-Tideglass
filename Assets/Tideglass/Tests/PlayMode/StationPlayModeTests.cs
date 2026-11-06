@@ -10,7 +10,7 @@ namespace Tideglass.Tests
     public class StationPlayModeTests
     {
         [UnityTest]
-        public IEnumerator KeeperCanCollectMountAndLightTheDockLantern()
+        public IEnumerator KeeperCanRestoreTheCoastThroughTheStationControls()
         {
             const string scenePath = "Assets/Tideglass/Scenes/Station.unity";
             int stationIndex = SceneUtility.GetBuildIndexByScenePath(scenePath);
@@ -30,12 +30,17 @@ namespace Tideglass.Tests
 
             Submit(root, "collect-saltglass");
             Submit(root, "collect-copper-eye");
+            Submit(root, "collect-seafoam-wheel");
             yield return null;
             Assert.That(root.Q<Button>("collect-saltglass").enabledInHierarchy, Is.False);
             Assert.That(root.Q("inventory").Q<Button>("mount-copper-eye"), Is.Not.Null);
 
             Submit(root, "mount-saltglass");
             Assert.That(root.Q<Label>("beam").text, Does.Contain("2 / 5"));
+            Submit(root, "mount-seafoam-wheel");
+            Assert.That(root.Q<Label>("beam").text, Does.Contain("6 / 5"));
+            Assert.That(root.Q<Button>("ignite").enabledInHierarchy, Is.False);
+            Submit(root, "mount-seafoam-wheel");
             Submit(root, "mount-copper-eye");
             yield return null;
             Assert.That(root.Q<Label>("beam").text, Does.Contain("5 / 5"));
@@ -47,6 +52,27 @@ namespace Tideglass.Tests
             Assert.That(root.Q<Label>("beam").text, Does.Contain("0 / 8"));
             Assert.That(root.Q<Button>("collect-fog-pearl").enabledInHierarchy, Is.True);
             Assert.That(root.Q("inventory").Q<Button>("mount-saltglass"), Is.Not.Null);
+            Assert.That(root.Q<Button>("collect-storm-fresnel").enabledInHierarchy, Is.False);
+
+            Submit(root, "collect-twinwake-prism");
+            Submit(root, "mount-seafoam-wheel");
+            Submit(root, "mount-twinwake-prism");
+            Assert.That(root.Q<Label>("beam").text, Does.Contain("8 / 8"), "The prism adds a bonus with an even partner.");
+            Submit(root, "light-from-inventory");
+            yield return null;
+            Assert.That(root.Q<Label>("progress").text, Does.Contain("2 / 3"));
+            Assert.That(root.Q<Label>("beam").text, Does.Contain("0 / 10"));
+
+            Submit(root, "collect-storm-fresnel");
+            Submit(root, "mount-storm-fresnel");
+            Submit(root, "mount-twinwake-prism");
+            Assert.That(root.Q<Label>("beam").text, Does.Contain("10 / 10"));
+            Submit(root, "ignite");
+            yield return null;
+            Assert.That(root.Q<Label>("progress").text, Does.Contain("3 / 3"));
+            Assert.That(root.Q<Label>("beam").text, Is.EqualTo("Passage safe"));
+            Assert.That(root.Q<Button>("ignite"), Is.Null);
+            Assert.That(root.Q("inventory").Q<Button>("mount-saltglass").enabledInHierarchy, Is.False);
         }
 
         private static void Submit(VisualElement root, string name)

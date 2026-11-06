@@ -38,6 +38,31 @@ namespace Tideglass.Tests
             }
         }
 
+        [TestCase(false, "assign a lens to catalogue slot 2")]
+        [TestCase(true, "duplicate lens ID 'saltglass' at catalogue slot 2")]
+        public void InvalidLensSlotsIdentifyTheAuthoringProblem(bool duplicate, string diagnostic)
+        {
+            var invalidCoast = ScriptableObject.CreateInstance<CoastDefinition>();
+            try
+            {
+                var lens = AssetDatabase.LoadAssetAtPath<LensDefinition>("Assets/Tideglass/Data/Lenses/Saltglass.asset");
+                Assert.That(lens, Is.Not.Null);
+                using var serializedCoast = new SerializedObject(invalidCoast);
+                var lenses = serializedCoast.FindProperty("lenses");
+                lenses.arraySize = 2;
+                lenses.GetArrayElementAtIndex(0).objectReferenceValue = lens;
+                lenses.GetArrayElementAtIndex(1).objectReferenceValue = duplicate ? lens : null;
+                serializedCoast.ApplyModifiedPropertiesWithoutUndo();
+
+                var error = Assert.Throws<System.InvalidOperationException>(() => invalidCoast.CreateSession());
+                Assert.That(error.Message, Does.Contain(diagnostic));
+            }
+            finally
+            {
+                Object.DestroyImmediate(invalidCoast);
+            }
+        }
+
         [Test]
         public void EachBeaconAddsNewSalvageAndCanBeLitWithTwoReachableLenses()
         {

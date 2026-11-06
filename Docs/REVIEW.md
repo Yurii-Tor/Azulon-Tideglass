@@ -2,13 +2,13 @@
 
 ## Automated checks
 
-Open `Tideglass` in Unity **6000.3.28f1**. Run **Window → General → Test Runner**. In a clean checkout, expect **12 EditMode** tests and **1 PlayMode** test.
+Open the project in Unity **6000.3.21f1**. Run **Window → General → Test Runner**. In a clean checkout, expect **14 EditMode** tests and **1 PlayMode** test.
 
 | Suite | What a passing run covers |
 | --- | --- |
 | GameSessionTests (9) | Ownership, tier gating, full sockets, invalid combinations, paired bonuses, ordering, retention and completion. |
-| CoastContentTests (3) | Imported textures, reachable catalogue entries, a playable route through the actual asset data, the starting scene and UI styles. |
-| StationPlayModeTests (1) | Loads Station, activates the actual collect, mount and ignition controls, then checks the next beacon and newly unlocked salvage. |
+| CoastContentTests (5) | Imported textures, reachable catalogue entries, a playable route through the authored assets, the starting scene, UI styles and diagnostics for missing lens references or duplicate IDs. |
+| StationPlayModeTests (1) | Loads Station and restores all three beacons through the actual UI controls. It checks an incorrect pair, the prism bonus, newly unlocked salvage and inventory retention after completion. |
 
 On Windows, close the Editor instance using this project, open PowerShell in the project root and run the following. The script writes each suite's NUnit XML and Editor log to `TestResults/` and stops if any suite fails, skips tests or returns no results.
 
@@ -16,10 +16,10 @@ On Windows, close the Editor instance using this project, open PowerShell in the
 .\Tools\Verify.ps1
 ```
 
-If your Hub install is in a custom folder, pass the path explicitly.
+The runner uses the editor version in `ProjectSettings/ProjectVersion.txt`. If your Hub install is in a custom folder, pass the path explicitly.
 
 ```powershell
-.\Tools\Verify.ps1 -Unity 'D:\Unity\6000.3.28f1\Editor\Unity.exe'
+.\Tools\Verify.ps1 -Unity 'D:\Unity\6000.3.21f1\Editor\Unity.exe'
 ```
 
 ## Manual review
@@ -32,10 +32,12 @@ If your Hub install is in a custom folder, pass the path explicitly.
 6. Add a lens by following the README. Confirm that the catalogue displays the new icon, power, unlock threshold and effect hint.
 7. Build the Station scene for the installed desktop target and repeat the first beacon in the actual player. Review both Editor and player logs.
 
-## Verification performed before handoff
+## Verified on Windows
 
-The nine pure C# tests ran successfully against Unity's NUnit fork on a .NET host. All five runtime and test assemblies compiled against the corresponding Unity 6000.3.28f1 managed APIs and the Unity Test Framework. Separate static checks resolved the project asset GUIDs, checked all six PNG icons and enumerated the valid lens pairs from the serialized coast data.
+On 2026-11-06, Unity **6000.3.21f1** imported the project and produced these results:
 
-The PowerShell runner also passed seven success and failure scenarios using simulated Editor processes on Linux.
+- `Tools/Verify.ps1`: 14 EditMode and 1 PlayMode test passed.
+- `-buildWindows64Player`: Windows x64 standalone build succeeded.
+- `-runTests -testPlatform StandaloneWindows64`: the full route passed in a standalone Windows test player.
 
-The Unity Editor import, on-screen layout, Play Mode execution, platform build and Windows PowerShell invocation still need a local run. The walkthrough in this folder is a recording guide. Supply the video recorded in English and the public repository URL for the actual submission.
+The route test sends UI Toolkit submit events to the running scene's buttons. Use the manual checklist for physical keyboard and mouse input and for visual checks at different window sizes. The walkthrough in this folder is a recording guide; the submission also requires a shareable video recorded in English.

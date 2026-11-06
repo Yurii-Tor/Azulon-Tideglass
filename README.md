@@ -6,8 +6,8 @@ A short collection puzzle for the [Azulon Unity Technical Challenge](https://azu
 
 ## Run
 
-1. Extract the archive. In Unity Hub, choose **Add project from disk** and select the **Tideglass** folder containing `Assets`, `Packages` and `ProjectSettings`.
-2. Open it with **Unity 6000.3.28f1**. Allow the first package resolution and asset import to finish.
+1. Clone this repository or extract its source archive. In Unity Hub, choose **Add project from disk** and select the folder containing `Assets`, `Packages` and `ProjectSettings`.
+2. Open it with **Unity 6000.3.21f1**. Allow the first package resolution and asset import to finish.
 3. Open `Assets/Tideglass/Scenes/Station.unity` and press **Play**. Start with a 1280 × 720 Game view. The same scene is enabled for standalone builds.
 4. Collect two lenses from the catalogue. Mount them in the inventory. Match the beam to the target, then light the beacon to unlock the next stretch of coast.
 
@@ -28,7 +28,7 @@ Each play session starts a fresh route. Lenses stay in your inventory between be
 
 1. In the Project window, select **Create → Tideglass → Lens**. Give it a unique ID, display name, description, Texture2D icon and base power. Set **Unlock After** to the number of lit beacons needed. Zero makes it available immediately.
 2. For a resonance effect, choose **Create → Tideglass → Effects → Even partner bonus**, set **Bonus**, and drag the asset into the lens's **Effect** field. The hint displays the configured amount automatically.
-3. Append the lens to **Lenses** in `Data/Coast.asset`. Start a fresh session to see it in the catalogue.
+3. Append the lens to **Lenses** in `Data/Coast.asset`. Start a fresh session to see it in the catalogue. If an entry is missing or uses an existing ID, the Console identifies its slot in the coast asset.
 4. To introduce a different rule, derive a ScriptableObject from `LensEffect`, implement `BonusFor(int partnerBasePower)` and `Hint`, and give it a `CreateAssetMenu`. Assign its asset to any lens. The inventory and UI consume the same interface.
 5. To add another stop, append a beacon to **Beacons** in the coast asset. Set its location, title and target, then configure newly reachable salvage for that stage. Run the content tests to check that a reachable pair can hit the target.
 
