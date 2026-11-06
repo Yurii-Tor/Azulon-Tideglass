@@ -1,0 +1,7 @@
+{
+    "name": "Tideglass.Content.Tests",
+    "rootNamespace": "Tideglass.Tests",
+    "references": [ "Tideglass.Domain", "Tideglass.Runtime" ],
+    "includePlatforms": [ "Editor" ],
+    "optionalUnityReferences": [ "TestAssemblies" ]
+}

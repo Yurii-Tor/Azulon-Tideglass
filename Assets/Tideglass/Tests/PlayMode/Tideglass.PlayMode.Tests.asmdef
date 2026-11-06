@@ -1,0 +1,5 @@
+{
+    "name": "Tideglass.PlayMode.Tests",
+    "rootNamespace": "Tideglass.Tests",
+    "optionalUnityReferences": [ "TestAssemblies" ]
+}
