@@ -1,14 +1,21 @@
 [CmdletBinding()]
 param(
-    [string] $Unity = "$env:ProgramFiles\Unity\Hub\Editor\6000.3.28f1\Editor\Unity.exe"
+    [string] $Unity
 )
 
 $ErrorActionPreference = 'Stop'
+$project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+if (!$Unity) {
+    $versionFile = Join-Path $project 'ProjectSettings/ProjectVersion.txt'
+    $version = Select-String -LiteralPath $versionFile -Pattern '^m_EditorVersion:\s+(\S+)$'
+    if (!$version) { throw "Cannot read the editor version from '$versionFile'." }
+    $Unity = Join-Path $env:ProgramFiles "Unity\Hub\Editor\$($version.Matches[0].Groups[1].Value)\Editor\Unity.exe"
+}
 if (!(Test-Path -LiteralPath $Unity -PathType Leaf)) {
     throw "Unity Editor was not found at '$Unity'. Pass -Unity with the full path to Unity.exe."
 }
+$Unity = (Resolve-Path -LiteralPath $Unity).Path
 
-$project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $results = New-Item -ItemType Directory -Force -Path (Join-Path $project 'TestResults')
 
 foreach ($mode in 'EditMode', 'PlayMode') {
@@ -16,7 +23,9 @@ foreach ($mode in 'EditMode', 'PlayMode') {
     $log = Join-Path $results.FullName "$mode.log"
     if (Test-Path -LiteralPath $report) { Remove-Item -LiteralPath $report }
     $arguments = "-batchmode -runTests -testPlatform $mode -projectPath `"$project`" -testResults `"$report`" -logFile `"$log`""
-    $run = Start-Process -FilePath $Unity -ArgumentList $arguments -PassThru -Wait
+    $run = Start-Process -FilePath $Unity -ArgumentList $arguments -WorkingDirectory $project -WindowStyle Hidden -PassThru
+    # Wait only for this Editor, not for persistent helpers such as the licensing client.
+    $run.WaitForExit()
     if ($run.ExitCode -ne 0 -or !(Test-Path -LiteralPath $report)) {
         throw "$mode did not finish successfully (exit $($run.ExitCode)). See $log"
     }
