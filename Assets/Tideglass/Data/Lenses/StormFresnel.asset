@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01f63566dc34e509b84be9a860174468, type: 3}
+  m_Name: StormFresnel
+  m_EditorClassIdentifier: 
+  id: storm-fresnel
+  displayName: Storm Fresnel
+  description: "A salvage diver found this stepped lens inside a sunken lantern."
+  icon: {fileID: 2800000, guid: 8ec3630870a13ca0b938161ffab832d9, type: 3}
+  basePower: 6
+  unlockAfter: 2
+  effect: {fileID: 0}

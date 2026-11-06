@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47f3c32c54e5b0251a02c1c42ac85795, type: 3}
+  m_Name: Coast
+  m_EditorClassIdentifier: 
+  lenses:
+  - {fileID: 11400000, guid: 9c04f88a524a1c8899c0a821f3436394, type: 2}
+  - {fileID: 11400000, guid: 5454ca62c6ac59b64358dae898a7b483, type: 2}
+  - {fileID: 11400000, guid: 492608a98ff704aa00153df31044a49d, type: 2}
+  - {fileID: 11400000, guid: 071d6111a92b085f38c28b9305427226, type: 2}
+  - {fileID: 11400000, guid: c365acb700b63ba31f39830206542623, type: 2}
+  - {fileID: 11400000, guid: 1a876a2fe2b6064134dab9db63642546, type: 2}
+  beacons:
+  - title: Dock Lantern
+    location: Pilgrim Harbor
+    target: 5
+  - title: Bell Buoy
+    location: Shatter Reef
+    target: 8
+  - title: Northlight
+    location: Gale Narrows
+    target: 10

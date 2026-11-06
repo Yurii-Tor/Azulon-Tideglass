@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01f63566dc34e509b84be9a860174468, type: 3}
+  m_Name: TwinwakePrism
+  m_EditorClassIdentifier: 
+  id: twinwake-prism
+  displayName: Twinwake Prism
+  description: "Two prisms cut from one blue shard. Their reflections travel in pairs."
+  icon: {fileID: 2800000, guid: 06fdf80ec59af83fecafad83f9da4622, type: 3}
+  basePower: 2
+  unlockAfter: 1
+  effect: {fileID: 11400000, guid: 6be0a711a676c62f9fb8a9aaa9c5d40d, type: 2}
