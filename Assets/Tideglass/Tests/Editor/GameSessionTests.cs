@@ -8,14 +8,17 @@ namespace Tideglass.Tests
     {
         private readonly ItemSpec reed = new ItemSpec("reed", "Reed", "", 0, 2);
         private readonly ItemSpec amber = new ItemSpec("amber", "Amber", "", 0, 3);
-        private readonly ItemSpec pearl = new ItemSpec("pearl", "Pearl", "", 1, 5);
-        private readonly ItemSpec echo = new ItemSpec("echo", "Echo", "", 2, 1, partner => partner);
+        private readonly ItemSpec wheel = new ItemSpec("wheel", "Wheel", "", 0, 4);
+        private readonly ItemSpec spare = new ItemSpec("spare", "Spare", "", 0, 6);
+        private readonly ItemSpec pearl = new ItemSpec("pearl", "Pearl", "", 1, 4);
+        private readonly ItemSpec echo = new ItemSpec("echo", "Echo", "", 1, 5);
+        private readonly ItemSpec glass = new ItemSpec("glass", "Glass", "", 2, 6);
         private GameSession game;
 
         [SetUp]
         public void SetUp()
         {
-            game = new GameSession(new[] { reed, amber, pearl, echo }, new[]
+            game = new GameSession(new[] { reed, amber, wheel, spare, pearl, echo, glass }, new[]
             {
                 new BeaconSpec("Pilot", "Shore", 5),
                 new BeaconSpec("Watch", "Reef", 8),
@@ -24,105 +27,132 @@ namespace Tideglass.Tests
         }
 
         [Test]
-        public void CollectionShowsTheFullCatalogueBeforeAnythingIsOwned()
-        {
-            Assert.That(game.Items.Count, Is.EqualTo(4));
-            Assert.That(game.IsUnlocked(reed), Is.True);
-            Assert.That(game.IsOwned(reed.Id), Is.False);
-            Assert.That(game.IsUnlocked(pearl), Is.False);
-            Assert.That(game.IsOwned(pearl.Id), Is.False);
-            Assert.That(game.BeamPower, Is.Zero);
-        }
-
-        [Test]
-        public void UnknownAndLockedItemsDoNotEnterInventoryOrSockets()
-        {
-            Assert.That(game.Collect("missing"), Is.Not.Empty);
-            Assert.That(game.Collect(pearl.Id), Is.Not.Empty);
-            Assert.That(game.ToggleMount("missing"), Is.Not.Empty);
-            Assert.That(game.ToggleMount(reed.Id), Is.Not.Empty);
-            Assert.That(game.ToggleMount(pearl.Id), Is.Not.Empty);
-
-            Assert.That(game.IsOwned("missing"), Is.False);
-            Assert.That(game.IsOwned(pearl.Id), Is.False);
-            Assert.That(game.Mounted, Is.Empty);
-        }
-
-        [Test]
-        public void ASecondClickRemovesTheLensAndLeavesItOwned()
+        public void CollectingDoesNotMountALensOrChangeTheBeam()
         {
             game.Collect(reed.Id);
             game.Collect(reed.Id);
-            game.ToggleMount(reed.Id);
-            Assert.That(game.BeamPower, Is.EqualTo(reed.BasePower));
-            Assert.That(game.IsMounted(reed.Id), Is.True);
-
-            game.ToggleMount(reed.Id);
-            Assert.That(game.Mounted, Is.Empty);
-            Assert.That(game.IsOwned(reed.Id), Is.True);
-        }
-
-        [Test]
-        public void AFullLampRejectsAThirdLensWithoutEvictingEitherLens()
-        {
-            LightFirstBeacon();
+            game.Collect(null);
+            game.Collect("missing");
             game.Collect(pearl.Id);
+
+            Assert.That(game.Inventory, Is.EqualTo(new[] { reed }));
+            Assert.That(game.Mounted, Is.Empty);
+            Assert.That(game.BeamPower, Is.Zero);
+            Assert.That(game.AvailabilityFor(reed), Is.EqualTo(LensAvailability.InInventory));
+            Assert.That(game.AvailabilityFor(pearl), Is.EqualTo(LensAvailability.Locked));
+        }
+
+        [Test]
+        public void AFullBagRejectsAFourthLensIncludingWhenTwoAreMounted()
+        {
+            Collect(reed, amber, wheel);
             game.ToggleMount(reed.Id);
             game.ToggleMount(amber.Id);
-            Assert.That(game.ToggleMount(pearl.Id), Is.Not.Empty);
+            game.Collect(spare.Id);
 
+            Assert.That(game.Inventory, Is.EqualTo(new[] { reed, amber, wheel }));
+            Assert.That(game.Mounted, Is.EqualTo(new[] { reed, amber }));
+            Assert.That(game.BeamPower, Is.EqualTo(5));
+            Assert.That(game.AvailabilityFor(spare), Is.EqualTo(LensAvailability.InventoryFull));
+        }
+
+        [Test]
+        public void UnmountingKeepsTheLensAndLetsThePlayerChooseTheSpare()
+        {
+            Collect(reed, amber, wheel);
+            game.ToggleMount(reed.Id);
+            game.ToggleMount(wheel.Id);
+            game.ToggleMount(amber.Id);
+            Assert.That(game.Mounted, Is.EqualTo(new[] { reed, wheel }));
+            Assert.That(game.BeamPower, Is.EqualTo(6));
+
+            game.ToggleMount(wheel.Id);
+            Assert.That(game.Inventory, Is.EqualTo(new[] { reed, amber, wheel }));
+            Assert.That(game.Mounted, Is.EqualTo(new[] { reed }));
+            Assert.That(game.BeamPower, Is.EqualTo(2));
+            game.ToggleMount(amber.Id);
             Assert.That(game.Mounted, Is.EqualTo(new[] { reed, amber }));
             Assert.That(game.BeamPower, Is.EqualTo(5));
         }
 
         [Test]
-        public void AValidPairUnlocksTheNextLocationOnlyWhenIgnited()
+        public void UnknownAndUnownedLensesCannotBeMounted()
         {
-            CollectAndMount(reed);
-            CollectAndMount(amber);
-            Assert.That(game.CanIgnite, Is.True);
-            Assert.That(game.LitCount, Is.Zero);
-            Assert.That(game.IsUnlocked(pearl), Is.False);
-
-            game.Ignite();
-            Assert.That(game.LitCount, Is.EqualTo(1));
-            Assert.That(game.CurrentBeacon.Title, Is.EqualTo("Watch"));
-            Assert.That(game.IsUnlocked(pearl), Is.True);
-            Assert.That(game.IsUnlocked(echo), Is.False);
-            Assert.That(game.IsOwned(pearl.Id), Is.False);
-            Assert.That(game.IsOwned(reed.Id), Is.True);
-            Assert.That(game.IsOwned(amber.Id), Is.True);
-            Assert.That(game.Mounted, Is.Empty);
-        }
-
-        [Test]
-        public void MissingOrMistunedPairCannotAdvanceTheRoute()
-        {
-            LightFirstBeacon();
-            game.ToggleMount(amber.Id);
-            Assert.That(game.CanIgnite, Is.False);
-            game.Ignite();
-            Assert.That(game.LitCount, Is.EqualTo(1));
-
+            game.ToggleMount(null);
+            game.ToggleMount("missing");
             game.ToggleMount(reed.Id);
-            Assert.That(game.BeamPower, Is.EqualTo(5));
-            Assert.That(game.CanIgnite, Is.False);
-            game.Ignite();
-            Assert.That(game.LitCount, Is.EqualTo(1));
-            Assert.That(game.Mounted, Is.EqualTo(new[] { amber, reed }));
+            game.ToggleMount(pearl.Id);
+            Assert.That(game.Inventory, Is.Empty);
+            Assert.That(game.Mounted, Is.Empty);
+            Assert.That(game.BeamPower, Is.Zero);
         }
 
         [Test]
-        public void PartnerEffectsReadBasePowerInEitherSocketAndOnlyWhenPaired()
+        public void FailedIgnitionPreservesBagSocketsAndCharges()
+        {
+            Collect(reed, amber, wheel);
+            game.ToggleMount(reed.Id);
+            game.Ignite();
+            Assert.That(game.LitCount, Is.Zero);
+            Assert.That(game.Inventory, Is.EqualTo(new[] { reed, amber, wheel }));
+            Assert.That(game.Mounted, Is.EqualTo(new[] { reed }));
+
+            game.ToggleMount(wheel.Id);
+            Assert.That(game.BeamPower, Is.EqualTo(6));
+            Assert.That(game.CanIgnite, Is.False);
+            game.Ignite();
+            Assert.That(game.LitCount, Is.Zero);
+            Assert.That(game.Inventory, Is.EqualTo(new[] { reed, amber, wheel }));
+            Assert.That(game.Mounted, Is.EqualTo(new[] { reed, wheel }));
+            Assert.That(game.AvailabilityFor(reed), Is.EqualTo(LensAvailability.InInventory));
+            Assert.That(game.AvailabilityFor(wheel), Is.EqualTo(LensAvailability.InInventory));
+        }
+
+        [Test]
+        public void SuccessfulIgnitionSpendsOnlyThePairAndRetainsTheSpare()
+        {
+            Collect(reed, amber, wheel);
+            game.ToggleMount(reed.Id);
+            game.ToggleMount(amber.Id);
+            Assert.That(game.CanIgnite, Is.True);
+            game.Ignite();
+
+            Assert.That(game.LitCount, Is.EqualTo(1));
+            Assert.That(game.Inventory, Is.EqualTo(new[] { wheel }));
+            Assert.That(game.Mounted, Is.Empty);
+            Assert.That(game.BeamPower, Is.Zero);
+            Assert.That(game.AvailabilityFor(reed), Is.EqualTo(LensAvailability.Spent));
+            Assert.That(game.AvailabilityFor(amber), Is.EqualTo(LensAvailability.Spent));
+            Assert.That(game.AvailabilityFor(pearl), Is.EqualTo(LensAvailability.Available));
+            Assert.That(game.AvailabilityFor(glass), Is.EqualTo(LensAvailability.Locked));
+            game.Collect(reed.Id);
+            Assert.That(game.Inventory, Is.EqualTo(new[] { wheel }));
+        }
+
+        [Test]
+        public void AValidPairCanLightTheBeaconWhenTheThirdBagSlotIsEmpty()
+        {
+            Collect(reed, amber);
+            game.ToggleMount(reed.Id);
+            game.ToggleMount(amber.Id);
+            Assert.That(game.CanIgnite, Is.True);
+            game.Ignite();
+            Assert.That(game.LitCount, Is.EqualTo(1));
+            Assert.That(game.Inventory, Is.Empty);
+        }
+
+        [Test]
+        public void PartnerEffectsUseBasePowerInEitherSocket()
         {
             var mirror = new ItemSpec("mirror", "Mirror", "", 0, 2, partner => partner);
             var prism = new ItemSpec("prism", "Prism", "", 0, 3, partner => partner * 2);
             game = new GameSession(new[] { mirror, prism }, new[] { new BeaconSpec("A", "B", 12) });
 
-            CollectAndMount(mirror);
+            Collect(mirror, prism);
+            game.ToggleMount(mirror.Id);
             Assert.That(game.BeamPower, Is.EqualTo(2));
-            CollectAndMount(prism);
-            Assert.That(game.BeamPower, Is.EqualTo((2 + 3) + (3 + 2 * 2)));
+            game.ToggleMount(prism.Id);
+            Assert.That(game.BeamPower, Is.EqualTo(12));
             game.ToggleMount(mirror.Id);
             Assert.That(game.BeamPower, Is.EqualTo(3));
             game.ToggleMount(mirror.Id);
@@ -130,27 +160,25 @@ namespace Tideglass.Tests
         }
 
         [Test]
-        public void TheFinalIgnitionCompletesTheRouteOnlyOnceAndPreservesTheCollection()
+        public void CompletionCannotSpendMoreLensesOrAdvanceAgain()
         {
-            LightFirstBeacon();
-            game.ToggleMount(amber.Id);
-            CollectAndMount(pearl);
+            Collect(reed, amber);
+            MountAndIgnite(reed, amber);
+            Collect(wheel, pearl);
+            MountAndIgnite(wheel, pearl);
+            Collect(echo, glass);
+            MountAndIgnite(echo, glass);
             game.Ignite();
-            Assert.That(game.IsUnlocked(echo), Is.True);
-
-            game.ToggleMount(pearl.Id);
-            CollectAndMount(echo);
-            Assert.That(game.BeamPower, Is.EqualTo(11));
-            game.Ignite();
-            game.Ignite();
-            game.ToggleMount(echo.Id);
+            game.Collect(spare.Id);
+            game.ToggleMount(spare.Id);
 
             Assert.That(game.Finished, Is.True);
             Assert.That(game.LitCount, Is.EqualTo(3));
             Assert.That(game.CurrentBeacon, Is.Null);
             Assert.That(game.CanIgnite, Is.False);
+            Assert.That(game.Inventory, Is.Empty);
             Assert.That(game.Mounted, Is.Empty);
-            foreach (var item in game.Items) Assert.That(game.IsOwned(item.Id), Is.True);
+            Assert.That(game.AvailabilityFor(spare), Is.EqualTo(LensAvailability.RouteComplete));
         }
 
         [Test]
@@ -159,17 +187,17 @@ namespace Tideglass.Tests
             Assert.Throws<ArgumentException>(() => new GameSession(new[] { reed, reed }, game.Beacons));
         }
 
-        private void LightFirstBeacon()
+        private void Collect(params ItemSpec[] items)
         {
-            CollectAndMount(reed);
-            CollectAndMount(amber);
-            game.Ignite();
+            foreach (var item in items) game.Collect(item.Id);
         }
 
-        private void CollectAndMount(ItemSpec item)
+        private void MountAndIgnite(ItemSpec first, ItemSpec second)
         {
-            game.Collect(item.Id);
-            game.ToggleMount(item.Id);
+            game.ToggleMount(first.Id);
+            game.ToggleMount(second.Id);
+            Assert.That(game.CanIgnite, Is.True);
+            game.Ignite();
         }
     }
 }

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Tideglass.Content;
@@ -32,6 +31,7 @@ namespace Tideglass.Tests
             {
                 Assert.That(string.IsNullOrWhiteSpace(item.Title), Is.False, item.Id);
                 Assert.That(string.IsNullOrWhiteSpace(item.Description), Is.False, item.Id);
+                Assert.That(item.UnlockAfter, Is.LessThan(game.Beacons.Count), $"{item.Id} must unlock before the route ends");
                 Texture2D icon = coast.IconFor(item.Id);
                 Assert.That(icon, Is.Not.Null, $"No imported icon for {item.Id}");
                 Assert.That(AssetDatabase.GetAssetPath(icon), Does.StartWith("Assets/Tideglass/"), item.Id);
@@ -61,49 +61,6 @@ namespace Tideglass.Tests
             {
                 Object.DestroyImmediate(invalidCoast);
             }
-        }
-
-        [Test]
-        public void EachBeaconAddsNewSalvageAndCanBeLitWithTwoReachableLenses()
-        {
-            var inventory = new List<ItemSpec>();
-            Assert.That(game.Beacons, Is.Not.Empty);
-            for (int stage = 0; stage < game.Beacons.Count; stage++)
-            {
-                BeaconSpec beacon = game.CurrentBeacon;
-                Assert.That(beacon, Is.Not.Null);
-                int previouslyOwned = inventory.Count;
-                foreach (ItemSpec item in game.Items)
-                {
-                    if (!game.IsUnlocked(item) || game.IsOwned(item.Id)) continue;
-                    game.Collect(item.Id);
-                    Assert.That(game.IsOwned(item.Id), Is.True, item.Id);
-                    inventory.Add(item);
-                }
-
-                Assert.That(inventory.Count, Is.GreaterThan(previouslyOwned), $"No new salvage for {beacon.Title}");
-                Assert.That(MountMatchingPair(inventory), Is.True, $"No reachable pair gives {beacon.Target} for {beacon.Title}");
-                game.Ignite();
-                Assert.That(game.LitCount, Is.EqualTo(stage + 1));
-            }
-            Assert.That(game.Finished, Is.True);
-            Assert.That(game.Items.All(item => game.IsOwned(item.Id)), Is.True, "Some catalogue entries are unreachable.");
-        }
-
-        private bool MountMatchingPair(List<ItemSpec> inventory)
-        {
-            for (int first = 0; first < inventory.Count; first++)
-            {
-                game.ToggleMount(inventory[first].Id);
-                for (int second = first + 1; second < inventory.Count; second++)
-                {
-                    game.ToggleMount(inventory[second].Id);
-                    if (game.CanIgnite) return true;
-                    game.ToggleMount(inventory[second].Id);
-                }
-                game.ToggleMount(inventory[first].Id);
-            }
-            return false;
         }
 
         [Test]

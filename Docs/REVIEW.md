@@ -1,43 +1,38 @@
-# Local verification
+# Verification
 
 ## Automated checks
 
-Open the project in Unity **6000.3.21f1**. Run **Window → General → Test Runner**. In a clean checkout, expect **14 EditMode** tests and **1 PlayMode** test.
+Open the project in Unity **6000.3.21f1**. In **Window → General → Test Runner**, run EditMode and PlayMode separately. The authored eight-lens coast currently has **18 EditMode** tests and **2 PlayMode** tests.
 
-| Suite | What a passing run covers |
-| --- | --- |
-| GameSessionTests (9) | Ownership, tier gating, full sockets, invalid combinations, paired bonuses, ordering, retention and completion. |
-| CoastContentTests (5) | Imported textures, reachable catalogue entries, a playable route through the authored assets, the starting scene, UI styles and diagnostics for missing lens references or duplicate IDs. |
-| StationPlayModeTests (1) | Loads Station and restores all three beacons through the actual UI controls. It checks an incorrect pair, the prism bonus, newly unlocked salvage and inventory retention after completion. |
-
-On Windows, close the Editor instance using this project, open PowerShell in the project root and run the following. The script writes each suite's NUnit XML and Editor log to `TestResults/` and stops if any suite fails, skips tests or returns no results.
+On Windows, close any Editor instance using this project and run from the project root:
 
 ```powershell
 .\Tools\Verify.ps1
 ```
 
-The runner uses the editor version in `ProjectSettings/ProjectVersion.txt`. If your Hub install is in a custom folder, pass the path explicitly.
+The script uses the version in `ProjectSettings/ProjectVersion.txt`, writes NUnit XML and Editor logs to `TestResults/`, and fails on missing, skipped or failed tests. Pass `-Unity 'D:\Unity\6000.3.21f1\Editor\Unity.exe'` if the Editor is installed outside the default Hub path.
 
-```powershell
-.\Tools\Verify.ps1 -Unity 'D:\Unity\6000.3.21f1\Editor\Unity.exe'
-```
+| Suite | Coverage |
+| --- | --- |
+| GameSessionTests (10) | Three-item capacity, duplicate and locked collection, mounting, unmounting, failed and successful ignition, retention, resonance and completion. |
+| CoastContentTests (4) | Imported icons, unlock thresholds, scene and styles, missing references and duplicate IDs. |
+| CoastRouteTests (4) | The main and alternative routes, Anchor with Crown, and exhaustive reachability using the real session and `Coast.asset`. |
+| StationPlayModeTests (2) | Full route through the actual UI controls and scrolling to the final card in the narrow layout. |
+
+The reachability test collects each permitted item and tries every pair through `GameSession`. Mounted configurations can be unmounted without changing the bag, so the search normalizes sockets between choices. It checks that every reachable nonterminal bag and spent-lens state can still lead to completion. For the original eight lenses, it also checks **7** different sequences of consumed pairs and **17** full bags, split **1 / 4 / 12** across the three beacons. The exact counts are checked only for that reference configuration.
 
 ## Manual review
 
-1. Start with an empty inventory. All six catalogue entries should expose their name, art, description and base power. Three are initially collectible.
-2. Collect Saltglass and Seafoam Wheel. Mount both. The beam should read six against a target of five, and ignition should stay unavailable. Remove the wheel and replace it with a collected Copper Eye. The beam should now show five and the beacon should be ready.
-3. Light the first beacon. Both initial lenses remain owned, the sockets clear and Shatter Reef salvage becomes collectible. Mount Seafoam Wheel with Twinwake Prism and check the even-partner bonus.
-4. Finish the three-beacon run. Verify the final signal, the completed route and the retained collection. Restart Play Mode and verify a new session.
-5. Check a 1280 × 720 Game view and a narrow window. Confirm that text and controls are reachable, that focus and activation work on a keyboard, and that the device's pointer can perform the full route.
-6. Add a lens by following the README. Confirm that the catalogue displays the new icon, power, unlock threshold and effect hint.
-7. Build the Station scene for the installed desktop target and repeat the first beacon in the actual player. Review both Editor and player logs.
+1. Start the Station scene at 1280 × 720. Collect Saltglass, Copper Eye and Seafoam Wheel. The bag reads 3 / 3, both sockets are empty and the beam remains 0 / 5.
+2. Mount Saltglass and Seafoam Wheel for 6 / 5. Unmount the wheel and check that it stays in the bag. Mount Copper Eye for 5 / 5 and light Dock Lantern. The pair is spent and the wheel remains in the bag.
+3. Collect Twinwake Prism. Mount the wheel and prism for 8 / 8, then light Bell Buoy. Collect Storm Fresnel and Fog Pearl. Mount them for 10 / 10 and light Northlight.
+4. In a fresh session, keep the wheel while lighting Dock Lantern. Mount Anchor Glass and Fog Pearl at Bell Buoy for 8. At Northlight, mount the wheel and Crown Glass for 10. Another valid route keeps Anchor for Northlight and pairs it with Crown for 10 without a resonance bonus.
+5. Check 1280 × 720 and 600 × 720. Use the mouse and keyboard, check the named unlock conditions and status messages, and scroll to Anchor Glass and Crown Glass at the bottom of the catalogue.
+6. In a disposable copy, add a lens as described in the README. Check its icon, power, unlock condition and effect hint. Run the content tests after changing the coast.
+7. In **File → Build Profiles**, select a desktop target, confirm Station is enabled and choose **Build and Run**. Repeat the main route in the player.
 
-## Verified on Windows
+## Windows verification on 2026-11-07
 
-On 2026-11-06, Unity **6000.3.21f1** imported the project and produced these results:
+Unity **6000.3.21f1** passed 18 EditMode and 2 PlayMode tests and produced a Windows x64 player. The main route was completed in that player using mouse and keyboard. Both 1280 × 720 and 600 × 720 were inspected, including the last catalogue cards by scrolling.
 
-- `Tools/Verify.ps1`: 14 EditMode and 1 PlayMode test passed.
-- `-buildWindows64Player`: Windows x64 standalone build succeeded.
-- `-runTests -testPlatform StandaloneWindows64`: the full route passed in a standalone Windows test player.
-
-The route test sends UI Toolkit submit events to the running scene's buttons. Use the manual checklist for physical keyboard and mouse input and for visual checks at different window sizes. The walkthrough in this folder is a recording guide; the submission also requires a shareable video recorded in English.
+The player logs recorded `d3d12: failed to query info queue interface (0x80004002)` before Direct3D 12 initialized. The rendered route completed and no game-script exception was reported.

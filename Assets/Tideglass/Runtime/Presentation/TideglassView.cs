@@ -11,10 +11,9 @@ namespace Tideglass.Presentation
         readonly GameSession session;
         readonly Func<string, Texture2D> iconFor;
         readonly Func<string, string> noteFor;
-        ScrollView scroll;
         VisualElement body;
         Label status;
-        string message = "Collect a lens from the catalogue, then mount it from your inventory.";
+        string message = "Collect lenses in your bag, then mount two to match the beacon's target.";
 
         public TideglassView(VisualElement root, GameSession session, Func<string, Texture2D> iconFor, Func<string, string> noteFor)
         {
@@ -30,7 +29,7 @@ namespace Tideglass.Presentation
             root.AddToClassList("tideglass");
             root.RegisterCallback<GeometryChangedEvent>(Resize);
             root.EnableInClassList("narrow", root.resolvedStyle.width < 800);
-            scroll = new ScrollView(ScrollViewMode.Vertical);
+            var scroll = new ScrollView(ScrollViewMode.Vertical);
             root.Add(scroll);
             body = Box(scroll, "page");
             status = Text(root, message, "status", "status");
@@ -66,7 +65,12 @@ namespace Tideglass.Presentation
 
                 var next = root.Q<Button>(name);
                 if (next == null || !next.enabledInHierarchy)
-                    next = root.Q<Button>(name.StartsWith("collect-", StringComparison.Ordinal) ? "jump-inventory" : "jump-catalogue");
+                {
+                    var ignite = root.Q<Button>("ignite");
+                    next = ignite != null && ignite.enabledInHierarchy
+                        ? ignite
+                        : root.Q<Button>(className: "collect-lens") ?? root.Q<Button>(className: "mount-lens");
+                }
                 next?.Focus();
             }) { text = title, name = name };
             parent.Add(button);
@@ -82,24 +86,7 @@ namespace Tideglass.Presentation
             Text(header, "Tideglass", "masthead");
             Text(header, $"{session.LitCount} / {session.Beacons.Count} beacons lit", "badge", "progress");
             DrawStation();
-            var navigation = Box(body, "jump-row");
-            JumpButton(navigation, "Catalogue", "catalogue");
-            JumpButton(navigation, "Inventory", "inventory");
-            var columns = Box(body, "columns");
-            DrawCatalogue(columns);
-            DrawInventory(columns);
-        }
-
-        void JumpButton(VisualElement row, string title, string section)
-        {
-            var button = new Button(() =>
-            {
-                var target = root.Q(section);
-                scroll.ScrollTo(target);
-                var action = target.Query<Button>().Where(b => b.enabledInHierarchy).First();
-                action?.Focus();
-            }) { name = "jump-" + section, text = title };
-            row.Add(button);
+            DrawCatalogue();
         }
 
         void DrawStation()
@@ -114,28 +101,60 @@ namespace Tideglass.Presentation
             var beacon = session.CurrentBeacon;
             Text(controls, session.Finished ? "ROUTE COMPLETE" : $"STATION {session.LitCount + 1:00}   /   {beacon.Location.ToUpperInvariant()}", "eyebrow");
             Text(controls, session.Finished ? "The coast is alight" : beacon.Title, "headline");
-            Text(controls, session.Finished ? "Every beacon is lit. Ships can follow your lights home." : "Fit two different lenses to match the station’s target.", "copy");
-            Text(controls, session.Finished ? "Passage safe" : $"Beam  {session.BeamPower} / {beacon.Target}", "power", "beam");
-            if (!session.Finished)
+            if (session.Finished)
             {
+                Text(controls, "Passage safe", "power", "beam");
+                Text(controls, "Every beacon is lit. Ships can follow your lights home.", "copy");
+            }
+            else
+            {
+                Text(controls, $"Beam power  {session.BeamPower} / {beacon.Target} target", "power", "beam");
                 var track = Box(controls, "track");
                 Box(track, "fill").style.width = Length.Percent(Mathf.Clamp01((float)session.BeamPower / beacon.Target) * 100);
-                if (session.Mounted.Count == 2 && !session.CanIgnite)
-                {
-                    int difference = session.BeamPower - beacon.Target;
-                    Text(controls, $"{Math.Abs(difference)} {(difference > 0 ? "over" : "under")} target. Swap one lens.", "effect");
-                }
+                DrawSockets(controls);
+                Text(controls, BeamHint(beacon.Target), "beam-hint", "beam-hint");
                 var ignite = Action(controls, "Light beacon", "ignite", session.Ignite);
                 ignite.AddToClassList("primary");
                 ignite.SetEnabled(session.CanIgnite);
             }
+            DrawInventory(station);
         }
 
-        void DrawCatalogue(VisualElement columns)
+        string BeamHint(int target)
         {
-            var catalogue = Box(columns, "catalogue", "catalogue");
+            if (session.Mounted.Count == 0) return "Mount two lenses from your bag to tune the lamp.";
+            if (session.Mounted.Count < GameSession.SocketCount) return "Mount one more lens from your bag.";
+            if (session.CanIgnite) return "Target matched. Lighting consumes the mounted pair.";
+
+            int difference = session.BeamPower - target;
+            return $"{Math.Abs(difference)} {(difference > 0 ? "over" : "under")} target. Unmount a lens and try another.";
+        }
+
+        void DrawSockets(VisualElement controls)
+        {
+            Text(controls, "LAMP SOCKETS", "eyebrow").AddToClassList("sockets-label");
+            for (int i = 0; i < GameSession.SocketCount; i++)
+            {
+                string detail = "Empty";
+                if (i < session.Mounted.Count)
+                {
+                    var lens = session.Mounted[i];
+                    int bonus = session.Mounted.Count == GameSession.SocketCount
+                        ? lens.EffectivePower(session.Mounted[1 - i].BasePower) - lens.BasePower
+                        : 0;
+                    detail = bonus == 0
+                        ? $"{lens.Title} · {lens.BasePower} power"
+                        : $"{lens.Title} · {lens.BasePower} power ({bonus:+#;-#} resonance)";
+                }
+                Text(controls, $"0{i + 1}   {detail}", "socket", $"socket-{i + 1}");
+            }
+        }
+
+        void DrawCatalogue()
+        {
+            var catalogue = Box(body, "catalogue", "catalogue");
             Text(catalogue, "Lens catalogue", "section");
-            Text(catalogue, "Collect any available lens for free.", "copy");
+            Text(catalogue, "Collect lenses into your bag. Each lens can light one beacon.", "copy");
             var grid = Box(catalogue, "grid");
             foreach (var item in session.Items)
             {
@@ -145,57 +164,68 @@ namespace Tideglass.Presentation
                 image.AddToClassList("icon");
                 row.Add(image);
                 Text(row, item.Title, "item-title");
-                string reach = item.UnlockAfter == 0 ? "HARBOR SALVAGE" : $"{item.UnlockAfter} {(item.UnlockAfter == 1 ? "BEACON" : "BEACONS")} TO REACH";
-                Text(card, $"POWER {item.BasePower}   /   {reach}", "spec");
+                Text(card, $"BASE POWER {item.BasePower}   ·   1 CHARGE", "spec");
                 Text(card, item.Description, "copy");
                 var note = noteFor(item.Id);
                 if (!string.IsNullOrWhiteSpace(note)) Text(card, note, "effect");
-                var owned = session.IsOwned(item.Id);
-                var unlocked = session.IsUnlocked(item);
-                var collect = Action(card, owned ? "Collected" : unlocked ? "Collect lens" : "Locked", "collect-" + item.Id, () => session.Collect(item.Id));
-                collect.SetEnabled(!owned && unlocked);
+                var choice = Box(card, "card-choice");
+                var availability = session.AvailabilityFor(item);
+                if (availability == LensAvailability.Available)
+                {
+                    Action(choice, "Collect", "collect-" + item.Id, () => session.Collect(item.Id)).AddToClassList("collect-lens");
+                }
+                else
+                {
+                    var label = Text(choice, CatalogueStatus(item, availability), "lens-status", "availability-" + item.Id);
+                    label.EnableInClassList("locked", availability == LensAvailability.Locked);
+                }
             }
         }
 
-        void DrawInventory(VisualElement columns)
+        string CatalogueStatus(ItemSpec item, LensAvailability availability)
         {
-            var inventory = Box(columns, "inventory", "inventory");
-            Text(inventory, "Keeper’s inventory", "section");
-            Text(inventory, "LENS MOUNTS", "eyebrow");
-            for (var i = 0; i < 2; i++)
+            switch (availability)
             {
-                var detail = "Empty mount";
-                if (i < session.Mounted.Count)
+                case LensAvailability.Locked:
+                    return item.UnlockAfter < session.Beacons.Count
+                        ? $"Light {session.Beacons[item.UnlockAfter - 1].Title} to unlock."
+                        : "Unavailable on this route.";
+                case LensAvailability.InInventory: return "Collected · in your bag";
+                case LensAvailability.InventoryFull: return "Bag full. Light a beacon to make room.";
+                case LensAvailability.Spent: return "Spent at a beacon";
+                case LensAvailability.RouteComplete: return "Route complete";
+                default: return string.Empty;
+            }
+        }
+
+        void DrawInventory(VisualElement station)
+        {
+            var inventory = Box(station, "inventory", "inventory");
+            var heading = Box(inventory, "inventory-heading");
+            Text(heading, "Keeper’s bag", "section");
+            Text(heading, $"{session.Inventory.Count} / {GameSession.InventoryCapacity} slots", "spec", "inventory-capacity");
+            Text(inventory, "Mount up to two lenses. Unmount to swap them.", "copy");
+            for (int i = 0; i < GameSession.InventoryCapacity; i++)
+            {
+                var slot = Box(inventory, "slot");
+                if (i >= session.Inventory.Count)
                 {
-                    var lens = session.Mounted[i];
-                    var effective = session.Mounted.Count == 2
-                        ? lens.EffectivePower(session.Mounted[1 - i].BasePower) : lens.BasePower;
-                    var bonus = effective - lens.BasePower;
-                    detail = $"{lens.Title}   ·   {lens.BasePower}";
-                    if (bonus != 0) detail += $" ({bonus:+#;-#} bonus)";
+                    Text(slot, $"0{i + 1}    Empty slot", "slot-empty");
+                    continue;
                 }
-                Text(inventory, $"0{i + 1}    {detail}", "slot");
+
+                var lens = session.Inventory[i];
+                var icon = new Image { image = iconFor(lens.Id), scaleMode = ScaleMode.ScaleToFit };
+                icon.AddToClassList("icon");
+                slot.Add(icon);
+                var detail = Box(slot, "slot-detail");
+                Text(detail, lens.Title, "slot-title");
+                bool mounted = session.IsMounted(lens.Id);
+                Text(detail, mounted ? $"{lens.BasePower} power · Mounted" : $"{lens.BasePower} power · Spare", "slot-power");
+                var action = Action(slot, mounted ? "Unmount" : "Mount", "mount-" + lens.Id, () => session.ToggleMount(lens.Id));
+                action.AddToClassList("mount-lens");
+                action.SetEnabled(!session.Finished && (mounted || session.Mounted.Count < GameSession.SocketCount));
             }
-            if (session.CanIgnite)
-            {
-                var light = Action(inventory, $"Light {session.CurrentBeacon.Title}", "light-from-inventory", session.Ignite);
-                light.AddToClassList("primary");
-            }
-            else if (session.Mounted.Count == 2)
-                Text(inventory, "Both sockets are full. Unmount a lens to swap it.", "copy");
-            Text(inventory, "OWNED LENSES", "eyebrow");
-            var count = 0;
-            foreach (var item in session.Items)
-            {
-                if (!session.IsOwned(item.Id)) continue;
-                count++;
-                var row = Box(inventory, "owned-row");
-                Text(row, $"{item.Title}   ·   {item.BasePower}", "item-title");
-                var mounted = session.IsMounted(item.Id);
-                var mount = Action(row, mounted ? "Unmount" : "Mount", "mount-" + item.Id, () => session.ToggleMount(item.Id));
-                mount.SetEnabled(!session.Finished && (mounted || session.Mounted.Count < 2));
-            }
-            if (count == 0) Text(inventory, "Collected lenses appear here.", "copy");
         }
     }
 }

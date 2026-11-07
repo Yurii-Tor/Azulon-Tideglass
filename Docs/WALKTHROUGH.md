@@ -1,14 +1,17 @@
 # English video walkthrough
 
-Record the actual Unity Game view or a running build together with the Project window and Inspector. The following route fits a roughly three-minute recording.
+Start the recording with the running game. The first minute demonstrates the three-slot bag, two lamp sockets and how an unmounted lens is carried forward.
 
 | Time | Show | Suggested narration |
 | --- | --- | --- |
-| 0:00–0:25 | Start the Station scene. Point out the empty inventory and the full catalogue. | “I'm the keeper of three coastal beacons. The catalogue shows every lens along the route, including salvage I can’t reach yet. My inventory contains only the lenses I’ve collected.” |
-| 0:25–0:55 | Collect **Saltglass** and **Copper Eye**, mount both from the inventory, then ignite **Dock Lantern**. | “This signal needs five. Saltglass supplies two and the Copper Eye supplies three. Lighting the harbor lamp opens Shatter Reef. I keep both lenses.” |
-| 0:55–1:25 | Collect **Seafoam Wheel** and **Twinwake Prism**. Fit them at **Bell Buoy**, then ignite. | “The prism starts at two. When its partner has even base power it gains another two. Paired with the four-power wheel, it reaches eight. I can see the result before committing.” |
-| 1:25–1:45 | Collect **Storm Fresnel**. Pair it with the same **Twinwake Prism**. Ignite **Northlight**. | “Here I can reuse the prism with the newly unlocked Fresnel. Six plus two and the resonance bonus give ten. The last signal is back on.” |
-| 1:45–2:10 | Stop Play. Show `Station.cs`, `GameSession.cs`, and `Data/Coast.asset`. | “The scene connects a coast asset to a plain C# session and the UI. The session handles ownership, socket limits and ignition. The coast asset sets the route and the available lenses.” |
-| 2:10–2:55 | Duplicate a lens in **Data/Lenses**. Change its ID to **signal-seed**, its display name to **Signal Seed**, and **Unlock After** to zero. Create an **Even partner bonus** asset, set its bonus to four, assign it to the new lens, and append that lens to the coast. Start Play and show the new card and its effect hint. | “This new lens uses an existing behavior with a different bonus. New rule types implement the two members of LensEffect. There’s no item switch to extend in the inventory or the view.” |
+| 0:00–0:15 | Show Dock Lantern, the empty bag and catalogue unlock hints. | “A storm has darkened three coastal beacons. The catalogue shows all the lenses and tells me which beacon unlocks each one.” |
+| 0:15–0:25 | Collect **Saltglass**, **Copper Eye** and **Seafoam Wheel**. Point to the bag at **3 / 3**, the empty sockets and the **0 / 5** beam. | “Collecting puts a lens in my three-slot bag. The beam stays at zero until I mount lenses in the lamp.” |
+| 0:25–0:42 | Mount Saltglass and Seafoam Wheel for **6 / 5**. Unmount the wheel, then mount Copper Eye for **5 / 5**. | “The first pair is one over target. Unmounting the wheel keeps it in my bag. Saltglass and Copper Eye match the target.” |
+| 0:42–0:55 | Light Dock Lantern. Point to **Seafoam Wheel** remaining in the **1 / 3** bag and to the spent pair. | “Lighting a beacon spends only the two mounted lenses. The wheel is still in my bag for the next stop.” |
+| 0:55–1:15 | Collect Twinwake Prism and mount it with the wheel. Show the **8 / 8** beam and light Bell Buoy. | “The prism gains two power with an even-power partner. The wheel and prism make eight together.” |
+| 1:15–1:35 | Collect Storm Fresnel and Fog Pearl, mount them for **10 / 10** and light Northlight. | “The Fresnel supplies six, the pearl supplies one, and its even-partner bonus adds three. The coast is alight.” |
+| 1:35–2:00 | Stop Play. Show `GameSession.cs`. | “The session is plain C#. It owns the bag and lamp sockets, checks exact targets and consumes the mounted pair.” |
+| 2:00–2:20 | Show `Station.cs`, its `UIDocument`, and `Data/Coast.asset`. | “The Station connects the authored coast to the session and UI Toolkit. The coast asset lists the lenses and beacon targets.” |
+| 2:20–3:00 | In a **separate disposable copy**, duplicate a lens in `Data/Lenses`. Give it a unique ID, name, icon and power. Assign an existing effect or create an Even Partner Bonus asset, then append the lens to the copy's Coast asset. Enter Play to show its card. | “A lens is a ScriptableObject. I can add one with an existing effect without editing the inventory or UI. New effect types implement LensEffect.” |
 
-Make the demonstration edits on a disposable branch or revert them before submission. Azulon requests a public GitHub or GitLab repository and a shareable link to the video, recorded in English.
+The base game contains eight lenses. Run the content tests in the disposable copy when changing a route or adding a lens. Azulon requests a shareable English video and a public repository URL for submission.

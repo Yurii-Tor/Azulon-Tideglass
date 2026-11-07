@@ -56,8 +56,8 @@
 }
 
 .tideglass .chart {
-    width: 33%;
-    max-width: 410px;
+    width: 25%;
+    max-width: 305px;
     background-color: #173035;
     min-height: 166px;
     justify-content: center;
@@ -70,6 +70,8 @@
 
 .tideglass .controls {
     flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
     padding: 14px 20px;
 }
 
@@ -103,16 +105,23 @@
     border-radius: 3px;
 }
 
-.tideglass .columns {
-    flex-direction: row;
-    align-items: flex-start;
+.tideglass .beam-hint {
+    color: #eac88a;
+    font-size: 13px;
+    margin-top: 7px;
 }
 
-.tideglass .catalogue {
-    flex-grow: 1;
-    flex-basis: 0;
-    min-width: 0;
-    margin-right: 14px;
+.tideglass .sockets-label {
+    margin-top: 7px;
+}
+
+.tideglass .socket {
+    color: #d6e8dc;
+    font-size: 12px;
+    background-color: #173035;
+    border-radius: 3px;
+    padding: 4px 7px;
+    margin-top: 3px;
 }
 
 .tideglass .grid {
@@ -160,12 +169,28 @@
     margin-top: 3px;
 }
 
+.tideglass .card-choice {
+    margin-top: auto;
+    padding-top: 9px;
+}
+
+.tideglass .lens-status {
+    color: #a5d5c6;
+    font-size: 13px;
+    -unity-font-style: bold;
+    min-height: 29px;
+    -unity-text-align: middle-left;
+}
+
+.tideglass .lens-status.locked {
+    color: #ecd4a1;
+}
+
 .tideglass .inventory {
-    width: 27%;
-    min-width: 218px;
+    width: 33%;
+    min-width: 242px;
     padding: 14px;
-    border-radius: 8px;
-    background-color: #20393d;
+    background-color: #182f35;
 }
 
 .tideglass .section {
@@ -174,23 +199,45 @@
     margin-bottom: 4px;
 }
 
-.tideglass .inventory .eyebrow {
-    margin: 12px 0 4px;
+.tideglass .inventory-heading {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tideglass .inventory .section {
+    font-size: 20px;
 }
 
 .tideglass .slot {
-    padding: 7px 8px;
-    margin-top: 3px;
+    flex-direction: row;
+    align-items: center;
+    min-height: 40px;
+    padding: 4px 8px;
+    margin-top: 5px;
     background-color: #132e32;
-    color: #dbddca;
-    border-radius: 3px;
+    border-radius: 5px;
 }
 
-.tideglass .owned-row {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin: 3px 0;
+.tideglass .slot .icon {
+    width: 30px;
+    height: 30px;
+}
+
+.tideglass .slot-detail {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.tideglass .slot-title {
+    font-size: 14px;
+    -unity-font-style: bold;
+}
+
+.tideglass .slot-empty, .tideglass .slot-power {
+    color: #b7cab9;
+    font-size: 12px;
 }
 
 .tideglass Button {
@@ -217,6 +264,15 @@
     opacity: 0.65;
 }
 
+.tideglass .card-choice Button {
+    margin-top: 0;
+}
+
+.tideglass .slot Button {
+    margin: 0 0 0 7px;
+    flex-shrink: 0;
+}
+
 .tideglass .primary {
     align-self: flex-start;
     background-color: #e3c087;
@@ -235,14 +291,8 @@
     padding: 12px;
 }
 
-.tideglass.narrow .columns {
-    flex-direction: column;
-    align-items: stretch;
-}
-
-.tideglass.narrow .catalogue {
-    margin: 0;
-    flex-basis: auto;
+.tideglass.narrow .station {
+    flex-wrap: wrap;
 }
 
 .tideglass.narrow .card {
@@ -251,20 +301,7 @@
 
 .tideglass.narrow .inventory {
     width: 100%;
-    margin-top: 10px;
-}
-
-.tideglass.narrow .chart {
-    width: 25%;
-}
-
-.tideglass .jump-row {
-    flex-direction: row;
-    margin-bottom: 8px;
-}
-
-.tideglass .jump-row Button {
-    margin: 0 8px 0 0;
+    min-width: 0;
 }
 
 .tideglass .route-lights {

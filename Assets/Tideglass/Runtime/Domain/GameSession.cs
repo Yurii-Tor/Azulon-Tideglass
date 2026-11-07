@@ -3,19 +3,34 @@ using System.Collections.Generic;
 
 namespace Tideglass.Domain
 {
+    public enum LensAvailability
+    {
+        Available,
+        Locked,
+        InInventory,
+        InventoryFull,
+        Spent,
+        RouteComplete
+    }
+
     public sealed class GameSession
     {
+        public const int InventoryCapacity = 3;
+        public const int SocketCount = 2;
+
         private readonly Dictionary<string, ItemSpec> catalogue = new Dictionary<string, ItemSpec>();
-        private readonly HashSet<string> owned = new HashSet<string>();
-        private readonly List<ItemSpec> mounted = new List<ItemSpec>(2);
+        private readonly HashSet<string> spent = new HashSet<string>();
+        private readonly List<ItemSpec> inventory = new List<ItemSpec>(InventoryCapacity);
+        private readonly List<ItemSpec> mounted = new List<ItemSpec>(SocketCount);
 
         public IReadOnlyList<ItemSpec> Items { get; }
         public IReadOnlyList<BeaconSpec> Beacons { get; }
+        public IReadOnlyList<ItemSpec> Inventory { get; }
         public IReadOnlyList<ItemSpec> Mounted { get; }
         public int LitCount { get; private set; }
         public bool Finished => LitCount == Beacons.Count;
         public BeaconSpec CurrentBeacon => Finished ? null : Beacons[LitCount];
-        public bool CanIgnite => !Finished && mounted.Count == 2 && BeamPower == CurrentBeacon.Target;
+        public bool CanIgnite => !Finished && mounted.Count == SocketCount && BeamPower == CurrentBeacon.Target;
 
         public int BeamPower
         {
@@ -38,53 +53,68 @@ namespace Tideglass.Domain
 
             Items = new List<ItemSpec>(items).AsReadOnly();
             Beacons = new List<BeaconSpec>(beacons).AsReadOnly();
+            Inventory = inventory.AsReadOnly();
             Mounted = mounted.AsReadOnly();
             foreach (ItemSpec item in Items) catalogue.Add(item.Id, item);
         }
 
-        public bool IsOwned(string id) => owned.Contains(id);
-        public bool IsUnlocked(ItemSpec item) => item != null && item.UnlockAfter <= LitCount;
-        public bool IsMounted(string id) => mounted.Exists(item => item.Id == id);
+        public LensAvailability AvailabilityFor(ItemSpec item)
+        {
+            if (spent.Contains(item.Id)) return LensAvailability.Spent;
+            if (inventory.Exists(lens => lens.Id == item.Id)) return LensAvailability.InInventory;
+            if (Finished) return LensAvailability.RouteComplete;
+            if (item.UnlockAfter > LitCount) return LensAvailability.Locked;
+            return inventory.Count < InventoryCapacity ? LensAvailability.Available : LensAvailability.InventoryFull;
+        }
+
+        public bool IsMounted(string id) => mounted.Exists(lens => lens.Id == id);
 
         public string Collect(string id)
         {
             if (id == null || !catalogue.TryGetValue(id, out ItemSpec item)) return "Unknown lens.";
-            if (!IsUnlocked(item))
+            switch (AvailabilityFor(item))
             {
-                string required = item.UnlockAfter == 1 ? "the first beacon" : $"the first {item.UnlockAfter} beacons";
-                return $"Light {required} to reach {item.Title}.";
+                case LensAvailability.Locked: return $"{item.Title} is still locked.";
+                case LensAvailability.InInventory: return $"{item.Title} is already in your bag.";
+                case LensAvailability.InventoryFull: return "Your bag is full. Light a beacon to make room.";
+                case LensAvailability.Spent: return $"{item.Title} has spent its charge.";
+                case LensAvailability.RouteComplete: return "All beacons are lit.";
             }
-            if (!owned.Add(id)) return $"{item.Title} is already in your inventory.";
 
-            return $"Collected {item.Title}. Mount it from your inventory.";
+            inventory.Add(item);
+            return $"Collected {item.Title}. Mount it from your bag to change the beam.";
         }
 
         public string ToggleMount(string id)
         {
             if (id == null || !catalogue.TryGetValue(id, out ItemSpec item)) return "Unknown lens.";
             if (Finished) return "All beacons are lit.";
-            if (!IsOwned(id)) return $"Collect {item.Title} before mounting it.";
-            if (mounted.Remove(item)) return $"Removed {item.Title} from the lamp.";
-            if (mounted.Count == 2) return "Both sockets are full. Remove a lens to make room.";
+            if (!inventory.Contains(item)) return $"Collect {item.Title} before mounting it.";
+            if (mounted.Remove(item)) return $"Unmounted {item.Title}. It remains in your bag.";
+            if (mounted.Count == SocketCount) return "Both sockets are full. Unmount a lens to swap it.";
 
             mounted.Add(item);
-            return $"Mounted {item.Title}.";
+            return $"Mounted {item.Title}. Beam power is now {BeamPower}.";
         }
 
         public string Ignite()
         {
             if (Finished) return "All beacons are lit.";
-            if (mounted.Count != 2) return "Mount two different lenses to light this beacon.";
+            if (mounted.Count != SocketCount) return "Mount two different lenses to light this beacon.";
 
             BeaconSpec beacon = CurrentBeacon;
             int power = BeamPower;
-            if (power != beacon.Target) return $"Your beam is {power}. Tune it to {beacon.Target} with a different pair.";
+            if (power != beacon.Target) return $"Your beam is {power}. Unmount a lens and try another pair to reach {beacon.Target}.";
 
-            LitCount++;
+            foreach (var lens in mounted)
+            {
+                spent.Add(lens.Id);
+                inventory.Remove(lens);
+            }
             mounted.Clear();
-            if (Finished) return $"{beacon.Title} is lit. The passage is safe!";
-
-            return $"{beacon.Title} is lit. Next stop: {CurrentBeacon.Location}.";
+            LitCount++;
+            if (Finished) return $"{beacon.Title} is lit. Both lenses spent. The passage is safe!";
+            return $"{beacon.Title} is lit. Both lenses spent. Next stop is {CurrentBeacon.Location}.";
         }
     }
 }

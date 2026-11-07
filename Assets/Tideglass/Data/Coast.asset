@@ -19,6 +19,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 071d6111a92b085f38c28b9305427226, type: 2}
   - {fileID: 11400000, guid: c365acb700b63ba31f39830206542623, type: 2}
   - {fileID: 11400000, guid: 1a876a2fe2b6064134dab9db63642546, type: 2}
+  - {fileID: 11400000, guid: 69ccb2e8f120471fb859ae48da76ccdc, type: 2}
+  - {fileID: 11400000, guid: 568d324c26294948a9b23dc36609fd6d, type: 2}
   beacons:
   - title: Dock Lantern
     location: Pilgrim Harbor
