@@ -77,11 +77,13 @@ namespace Tideglass.Tests
         }
 
         [Test]
-        public void StationSceneUsesTheAuthoredStationLayout()
+        public void StationSceneUsesTheAuthoredStationAndCardLayouts()
         {
-            const string layoutPath = "Assets/Tideglass/Resources/Interface/Station.uxml";
-            var layout = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(layoutPath);
-            Assert.That(layout, Is.Not.Null, $"Missing imported layout at {layoutPath}");
+            const string interfacePath = "Assets/Tideglass/Resources/Interface/";
+            var layout = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(interfacePath + "Station.uxml");
+            var cardLayout = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(interfacePath + "LensCard.uxml");
+            Assert.That(layout, Is.Not.Null, "Station.uxml failed to import.");
+            Assert.That(cardLayout, Is.Not.Null, "LensCard.uxml failed to import.");
 
             Scene scene = SceneManager.GetSceneByPath(ScenePath);
             bool openedForTest = !scene.isLoaded;
@@ -98,6 +100,9 @@ namespace Tideglass.Tests
                 Assert.That(tree.Q<Button>("ignite"), Is.Not.Null);
                 Assert.That(tree.Q<Label>("beam"), Is.Not.Null);
                 Assert.That(tree.Q<VisualElement>("catalogue"), Is.Not.Null);
+                var preview = tree.Q<TemplateContainer>("catalogue-preview");
+                Assert.That(preview, Is.Not.Null, "Station.uxml needs a catalogue-preview template instance.");
+                Assert.That(preview.templateSource, Is.EqualTo(cardLayout));
             }
             finally
             {

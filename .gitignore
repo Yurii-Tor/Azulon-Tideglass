@@ -8,6 +8,7 @@
 /[Tt]est[Rr]esults/
 /MemoryCaptures/
 /Recordings/
+/ProjectSettings/PackageManagerSettings.asset
 .vs/
 .idea/
 *.csproj

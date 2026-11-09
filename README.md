@@ -44,7 +44,7 @@ For a full station preview, select `Station.uxml` at the top of the Hierarchy, s
 
 To move **Light beacon**, open `Station.uxml` and drag `ignite` above `beam-indicator` in the **Hierarchy**. Keep them at the same nesting level. To change a fixed caption, select its Label and edit **Text** in the Inspector. Save, return to `Station.unity` and press Play.
 
-Open `LensCard.uxml` to rearrange the title, icon or action for every card. The example text is for preview. For a particular lens's title, description or icon, edit its `LensDefinition` in `Data/Lenses`. Keep element names when moving controls. The view uses them to bind button actions and update values such as beam power, bag contents and lens availability.
+Open `LensCard.uxml` to rearrange the title, icon or action for every card. `Station.uxml` references it through the `catalogue-preview` template instance, which also supplies the template to the running game. For a particular lens's title, description or icon, edit its `LensDefinition` in `Data/Lenses`. Keep element names when moving controls. The view uses them to bind button actions and update values such as beam power, bag contents and lens availability.
 
 ## Add a lens or a behavior
 

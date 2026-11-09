@@ -131,7 +131,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   coast: {fileID: 11400000, guid: 10471517e067e8bf8531314f0cfe218a, type: 2}
-  lensCard: {fileID: 9197481963319205126, guid: 6d49fcc18e79411589e6caee0818f5da, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

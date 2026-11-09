@@ -9,12 +9,11 @@ namespace Tideglass
     public sealed class Station : MonoBehaviour
     {
         [SerializeField] private CoastDefinition coast;
-        [SerializeField] private VisualTreeAsset lensCard;
 
         private void Start()
         {
             var root = GetComponent<UIDocument>().rootVisualElement;
-            new TideglassView(root, lensCard, coast.CreateSession(), coast.IconFor, coast.NoteFor);
+            new TideglassView(root, coast.CreateSession(), coast.IconFor, coast.NoteFor);
         }
     }
 }

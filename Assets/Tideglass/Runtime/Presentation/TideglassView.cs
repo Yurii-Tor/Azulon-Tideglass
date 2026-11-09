@@ -30,12 +30,17 @@ namespace Tideglass.Presentation
         private readonly Label status;
         private readonly Button ignite;
 
-        public TideglassView(VisualElement root, VisualTreeAsset lensCard, GameSession session,
+        public TideglassView(VisualElement root, GameSession session,
             Func<string, Texture2D> iconFor, Func<string, string> noteFor)
         {
             this.root = root;
             this.session = session;
             this.iconFor = iconFor;
+            var preview = Find<TemplateContainer>(root, "catalogue-preview");
+            var lensCard = preview.templateSource;
+            if (lensCard == null)
+                throw new InvalidOperationException("Assign LensCard.uxml to the catalogue-preview template in Station.uxml.");
+
             beaconUnlit = Find<VisualElement>(root, "beacon-unlit");
             beaconLit = Find<VisualElement>(root, "beacon-lit");
             beamIndicator = Find<VisualElement>(root, "beam-indicator");
@@ -72,7 +77,7 @@ namespace Tideglass.Presentation
                 lights.Add(routeLights[i]);
             }
 
-            root.Q("catalogue-preview")?.RemoveFromHierarchy();
+            preview.RemoveFromHierarchy();
             var grid = Find<VisualElement>(root, "catalogue-grid");
             foreach (var item in session.Items)
             {
