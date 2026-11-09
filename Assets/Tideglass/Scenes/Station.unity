@@ -116,7 +116,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_PanelSettings: {fileID: 11400000, guid: 4f494fb77a734bb878b519130c4a93ee, type: 2}
   m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 31d6311882704599be00a9d27a0c42d3, type: 3}
   m_SortingOrder: 0
 --- !u!114 &204
 MonoBehaviour:
@@ -131,6 +131,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   coast: {fileID: 11400000, guid: 10471517e067e8bf8531314f0cfe218a, type: 2}
+  lensCard: {fileID: 9197481963319205126, guid: 6d49fcc18e79411589e6caee0818f5da, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

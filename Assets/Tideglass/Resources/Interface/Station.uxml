@@ -1,0 +1,83 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="Tideglass.uss" />
+    <ui:Template name="LensCard" src="LensCard.uxml" />
+    <ui:Template name="BagSlot" src="BagSlot.uxml" />
+    <ui:VisualElement name="station-screen" class="tideglass">
+        <ui:ScrollView name="station-scroll" mode="Vertical">
+            <ui:VisualElement class="page">
+                <ui:Label text="COASTAL SIGNAL SERVICE   /   KEEPER’S DESK" class="eyebrow" />
+                <ui:VisualElement class="header">
+                    <ui:Label name="masthead" text="Tideglass" class="masthead" />
+                    <ui:VisualElement class="inline-text">
+                        <ui:Label name="progress" text="0 / 3" class="badge" />
+                        <ui:Label text="beacons lit" class="badge" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="station">
+                    <ui:VisualElement class="chart">
+                        <ui:VisualElement name="beacon-unlit" class="beacon-art" style="background-image: url('/Assets/Tideglass/Art/Beacon/BeaconUnlit.png');" />
+                        <ui:VisualElement name="beacon-lit" class="beacon-art is-hidden" style="background-image: url('/Assets/Tideglass/Art/Beacon/BeaconLit.png');" />
+                        <ui:VisualElement name="route-lights" class="route-lights">
+                            <ui:VisualElement name="route-preview" class="inline-text">
+                                <ui:VisualElement class="route-unlit" />
+                                <ui:VisualElement class="route-unlit" />
+                                <ui:VisualElement class="route-unlit" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="controls" class="controls">
+                        <ui:Label name="beacon-location" text="STATION 01   /   PILGRIM HARBOR" class="eyebrow" />
+                        <ui:Label name="beacon-title" text="Dock Lantern" class="headline" />
+                        <ui:VisualElement name="beam-indicator">
+                            <ui:VisualElement class="inline-text power-line">
+                                <ui:Label text="Beam power" class="power" />
+                                <ui:Label name="beam" text="0 / 5" class="power" />
+                                <ui:Label text="target" class="power" />
+                            </ui:VisualElement>
+                            <ui:VisualElement class="track">
+                                <ui:VisualElement name="beam-fill" class="fill" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:VisualElement name="lamp-sockets">
+                            <ui:Label text="LAMP SOCKETS" class="eyebrow sockets-label" />
+                            <ui:VisualElement class="socket inline-text">
+                                <ui:Label text="01" />
+                                <ui:Label name="socket-1" text="Empty" />
+                            </ui:VisualElement>
+                            <ui:VisualElement class="socket inline-text">
+                                <ui:Label text="02" />
+                                <ui:Label name="socket-2" text="Empty" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:Label name="beam-hint" text="Mount two lenses from your bag to tune the lamp." class="beam-hint" />
+                        <ui:Button name="ignite" text="Light beacon" class="primary" />
+                        <ui:VisualElement name="route-complete" class="is-hidden">
+                            <ui:Label text="ROUTE COMPLETE" class="eyebrow" />
+                            <ui:Label text="The coast is alight" class="headline" />
+                            <ui:Label name="completed-beam" text="Passage safe" class="power" />
+                            <ui:Label text="Every beacon is lit. Ships can follow your lights home." class="copy" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="inventory" class="inventory">
+                        <ui:VisualElement class="inventory-heading">
+                            <ui:Label text="Keeper’s bag" class="section" />
+                            <ui:Label name="inventory-capacity" text="0 / 3 slots" class="spec" />
+                        </ui:VisualElement>
+                        <ui:Label text="Mount up to two lenses. Unmount to swap them." class="copy" />
+                        <ui:Instance template="BagSlot" name="bag-slot-1" />
+                        <ui:Instance template="BagSlot" name="bag-slot-2" />
+                        <ui:Instance template="BagSlot" name="bag-slot-3" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="catalogue" class="catalogue">
+                    <ui:Label text="Lens catalogue" class="section" />
+                    <ui:Label text="Collect lenses into your bag. Each lens can light one beacon." class="copy" />
+                    <ui:VisualElement name="catalogue-grid" class="grid">
+                        <ui:Instance template="LensCard" name="catalogue-preview" class="card-host" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+        <ui:Label name="status" text="Collect lenses in your bag, then mount two to match the beacon's target." class="status" />
+    </ui:VisualElement>
+</ui:UXML>

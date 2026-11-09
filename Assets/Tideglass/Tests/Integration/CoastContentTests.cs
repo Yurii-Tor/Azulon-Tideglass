@@ -3,7 +3,9 @@ using NUnit.Framework;
 using Tideglass.Content;
 using Tideglass.Domain;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 namespace Tideglass.Tests
@@ -72,6 +74,35 @@ namespace Tideglass.Tests
             Assert.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath), Is.Not.Null);
             Assert.That(Resources.Load<StyleSheet>("Interface/Tideglass"), Is.Not.Null);
             Assert.That(Resources.Load<ThemeStyleSheet>("Interface/TideglassTheme"), Is.Not.Null);
+        }
+
+        [Test]
+        public void StationSceneUsesTheAuthoredStationLayout()
+        {
+            const string layoutPath = "Assets/Tideglass/Resources/Interface/Station.uxml";
+            var layout = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(layoutPath);
+            Assert.That(layout, Is.Not.Null, $"Missing imported layout at {layoutPath}");
+
+            Scene scene = SceneManager.GetSceneByPath(ScenePath);
+            bool openedForTest = !scene.isLoaded;
+            if (openedForTest) scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Additive);
+            try
+            {
+                var station = scene.GetRootGameObjects().SingleOrDefault(obj => obj.name == "Tideglass Station");
+                Assert.That(station, Is.Not.Null);
+                var document = station.GetComponent<UIDocument>();
+                Assert.That(document, Is.Not.Null);
+                Assert.That(document.visualTreeAsset, Is.EqualTo(layout));
+
+                VisualElement tree = layout.Instantiate();
+                Assert.That(tree.Q<Button>("ignite"), Is.Not.Null);
+                Assert.That(tree.Q<Label>("beam"), Is.Not.Null);
+                Assert.That(tree.Q<VisualElement>("catalogue"), Is.Not.Null);
+            }
+            finally
+            {
+                if (openedForTest) EditorSceneManager.CloseScene(scene, true);
+            }
         }
     }
 }

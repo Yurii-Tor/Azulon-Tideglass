@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="LensCard.uss" />
+    <ui:VisualElement class="card">
+        <ui:VisualElement name="lens-heading" class="row">
+            <ui:VisualElement name="lens-icon" class="icon" style="background-image: url('/Assets/Tideglass/Art/Lenses/Saltglass.png');" />
+            <ui:Label name="lens-title" text="Sample lens" class="item-title" />
+        </ui:VisualElement>
+        <ui:VisualElement class="inline-text card-spec">
+            <ui:Label text="BASE POWER" />
+            <ui:Label name="lens-power" text="2" />
+            <ui:Label text="·   Single use" />
+        </ui:VisualElement>
+        <ui:Label name="lens-description" text="A piece of sea glass polished by the tide." class="copy" />
+        <ui:Label name="lens-effect" text="+2 beam with an even-power partner." class="effect" />
+        <ui:VisualElement class="card-choice">
+            <ui:Button name="lens-collect" text="Collect" class="collect-lens" />
+            <ui:Label name="lens-availability" text="Light Dock Lantern to unlock." class="lens-status is-hidden" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

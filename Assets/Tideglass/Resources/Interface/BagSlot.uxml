@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement class="slot">
+        <ui:VisualElement name="slot-empty" class="inline-text">
+            <ui:Label name="slot-number" text="—" class="slot-power" />
+            <ui:Label text="Empty slot" class="slot-power" />
+        </ui:VisualElement>
+        <ui:VisualElement name="slot-filled" class="slot-filled is-hidden">
+            <ui:VisualElement name="slot-icon" class="icon" />
+            <ui:VisualElement class="slot-detail">
+                <ui:Label name="slot-title" text="Sample lens" class="slot-title" />
+                <ui:Label name="slot-power" text="2 power · Spare" class="slot-power" />
+            </ui:VisualElement>
+            <ui:Button name="slot-action" text="Mount" class="mount-lens" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
